@@ -1,11 +1,5 @@
 module Colors
   COLORS = ["RED", "GREEN", "BLUE", "YELLOW", "PINK", "PURPLE"]
-
-  def valid_color?(color)
-    color = color.downcase
-    COLORS.include?(color)
-  end
-
 end
 
 #=====================================================================================================================================
@@ -20,23 +14,55 @@ class Game
     @guess = ["","","",""]
     @secret_code = ["","","",""]
     @board = Board.new
+    @turn = 1
   end
 
-  # game loop
-  def play
+  # user plays as code guesser, Computer makes secret code
+  def play_guesser
+    generate_secret_code
 
+    while !game_over?
+      valid = false
+
+      while !valid
+        puts @board.to_s
+        print "(Turn #{@turn}) Your guess: "
+        answer = gets.chomp.upcase
+        if make_guess(answer)
+          valid = true
+        end
+      end
+
+      if !guessed_code?
+        rate_guess
+      else
+        puts "You cracked the code!"
+        break
+      end
+
+      @turn += 1
+    end
+  end
+
+  # user makes secret code, Computer guesses code
+  def play_code_creator
+    
   end
 
   # game is over if:
   #  - guess given is equal to the secret code and isn't in the initialized state
   #  - or turn limit has been reached and secret code hasn't been guessed
   def game_over?
-    (@guess == @secret_code) && !secret_code.include?("") || @turn = 12
+    guessed_code? || (@turn > 12)
+  end
+
+  def guessed_code?
+    (@guess == @secret_code) && !(@secret_code.include?(""))
   end
 
   # input for move has to be in the format "color1 color2 color3 color4"
-  def valid_input(in)
-    (in.split(" ").length == 4) || valid_guess(in)
+  def valid_input(input)
+    (input.split(" ").length == 4) && valid_guess(input.split(" "))
   end
 
   # guess has to contain each color at most once and must be a valid color
@@ -56,16 +82,56 @@ class Game
   def make_guess(guess)
     
     if valid_input(guess)
-      @board.add_to_board(guess)
+      @guess = guess.split(" ")
+      @board.add_to_board(@guess)
       true
     else
       false
     end
   end
 
+  # User enters secret code
+  def enter_secret_code(code)
+
+    if valid_input(code)
+      @secret_code = code
+      true
+    else
+      false
+    end
+  end
+
+  # Computer generates secret code
+  def generate_secret_code
+    @secret_code = COLORS.shuffle[0..3]
+    puts "SECRET CODE: #{@secret_code}"
+  end
+
   # decides how many white and red pins to display
   def rate_guess
+  #  correct_colors = @guess.intersection(@secret_code).length
+  #  correct_position = 0
 
+  #  @guess.intersection(@secret_code).each do |color|
+  #     if @secret_code.index(color) == @guess.index(color)
+  #     correct_position += 1
+  #     correct_colors -= 1
+  #     end
+  #   end
+  #   @white_pin = correct_colors
+  #   @red_pin = correct_position
+
+  #   puts "red pins: #{@red_pin}, white pins: #{@white_pin}"
+
+  @white_pin = @guess.intersection(@secret_code).length
+  @red_pin = 0
+   @guess.intersection(@secret_code).each do |color|
+      if @secret_code.index(color) == @guess.index(color)
+        @red_pin += 1
+        @white_pin -= 1
+      end
+    end
+    puts "red pins: #{@red_pin}, white pins: #{@white_pin}"
   end
 end
 #=====================================================================================================================================
@@ -80,17 +146,29 @@ class Board
   def add_to_board(guess)
     @arr.push(guess)
   end
-    
+
+  def to_s
+    if @arr.length == 0
+      return "|No guesses made yet!|"
+    else
+      out_str = ""
+      @arr.each do |guess|
+        out_str += "[#{guess[0]}, #{guess[1]}, #{guess[2]}, #{guess[3]}]\n"
+      end
+    end
+    out_str
+  end
 end
 #=====================================================================================================================================
-class Player
-
-end
-#=====================================================================================================================================
-
 def play_game
-  game = Game.new()
-  game.play
+  game = Game.new
+  mode = set_up
+
+  if mode == "g"
+    game.play_guesser
+  elsif mode == "c"
+    game.play_code_creator
+  end
   play_again
 end
 
@@ -112,6 +190,15 @@ def play_again
   end
 end
 
+def set_up
+  
+  answer = ""
+  while (answer != "g") && (answer != "c")
+    puts "guesser or code creator? (g/c): "
+    answer = gets.chomp
+  end
+  answer
+end
 #===============================================================================
 
 play_game
