@@ -46,8 +46,39 @@ class Game
 
   # user makes secret code, Computer guesses code
   def play_code_creator
+    valid = false
+
+    # Entering secret code
+    while !valid
+      print "Enter your secret code: "
+      answer = gets.chomp.upcase
+      if enter_secret_code(answer)
+        valid = true
+        puts "Secret code set! #{@secret_code}"
+      end
+    end
+
+    #Computer guesses up to 12 times
+    while !game_over?
+      puts @board.to_s
+      generate_guess
+      if !guessed_code?
+        rate_guess
+      else
+        puts "Computer cracked the code!"
+        break
+      end
+      @turn += 1
+    end
     
   end
+
+  def generate_guess
+    # bindly guessing
+    @guess = COLORS.shuffle[0..3]
+    @board.add_to_board(@guess)
+  end
+
 
   # game is over if:
   #  - guess given is equal to the secret code and isn't in the initialized state
@@ -94,7 +125,7 @@ class Game
   def enter_secret_code(code)
 
     if valid_input(code)
-      @secret_code = code
+      @secret_code = code.split(" ")
       true
     else
       false
