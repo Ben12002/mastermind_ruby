@@ -134,7 +134,35 @@ class Game
 
   # Computer generates secret code
   def generate_secret_code
-    @secret_code = COLORS.shuffle[0..3]
+    # blindly guessing
+    # @secret_code = COLORS.shuffle[0..3]
+    if @turn == 1
+      @secret_code = COLORS.shuffle[0..3]
+    else
+      valid = false
+
+      while !valid
+        correct_colors = ["","","",""]
+
+        @guess.intersection(@secret_code).each do |color|
+          if @secret_code.index(color) == @guess.index(color)
+            correct_colors[@secret_code.index(color)] = color
+          end
+        end
+
+        correct_colors.each do |color,idx|
+          if color == ""
+            correct_colors[idx] = COLORS.shuffle[0]
+          end
+        end
+
+        valid = valid_guess(correct_colors)
+      end
+
+
+      @secret_code = correct_colors
+    end
+
     puts "SECRET CODE: #{@secret_code}"
   end
 
